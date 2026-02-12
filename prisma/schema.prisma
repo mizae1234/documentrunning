@@ -1,0 +1,54 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(cuid())
+  name      String
+  email     String   @unique
+  password  String
+  role      String   @default("user") // admin | user
+  createdAt DateTime @default(now()) @map("created_at")
+
+  documentRequests    DocumentRequest[] @relation("CreatedBy")
+  cancelledDocuments  DocumentRequest[] @relation("CancelledBy")
+
+  @@map("users")
+}
+
+model DocumentCounter {
+  year       Int @id
+  currentSeq Int @default(0) @map("current_seq")
+
+  @@map("document_counters")
+}
+
+model DocumentRequest {
+  id             String    @id @default(cuid())
+  runningNo      String    @map("running_no")
+  runningSeq     Int       @map("running_seq")
+  year           Int
+  requestDate    DateTime  @map("request_date")
+  useDate        DateTime  @map("use_date")
+  subject        String
+  attachmentPath String?   @map("attachment_path")
+  status         String    @default("active") // active | cancelled
+  cancelReason   String?   @map("cancel_reason")
+  cancelledAt    DateTime? @map("cancelled_at")
+
+  cancelledById  String?   @map("cancelled_by")
+  cancelledBy    User?     @relation("CancelledBy", fields: [cancelledById], references: [id])
+
+  createdById    String    @map("created_by")
+  createdBy      User      @relation("CreatedBy", fields: [createdById], references: [id])
+
+  createdAt      DateTime  @default(now()) @map("created_at")
+
+  @@unique([runningNo])
+  @@map("document_requests")
+}
