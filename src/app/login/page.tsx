@@ -37,8 +37,7 @@ export default function LoginPage() {
                 toast.error("อีเมลหรือรหัสผ่านไม่ถูกต้อง");
             } else {
                 toast.success("เข้าสู่ระบบสำเร็จ");
-                router.push("/dashboard");
-                router.refresh();
+                window.location.href = "/dashboard";
             }
         } catch {
             toast.error("เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง");
