@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { signIn } from "next-auth/react";
 import { FileText, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -14,32 +15,31 @@ import {
     CardTitle,
 } from "@/components/ui/card";
 import { toast } from "sonner";
+import { Suspense } from "react";
 
-export default function LoginPage() {
+function LoginForm() {
+    const searchParams = useSearchParams();
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [loading, setLoading] = useState(false);
+
+    // Show error from NextAuth redirect (e.g. ?error=CredentialsSignin)
+    const error = searchParams.get("error");
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setLoading(true);
 
         try {
-            const result = await signIn("credentials", {
+            // Use redirect: true — NextAuth handles cookie + redirect server-side
+            // This is more reliable behind reverse proxies (HTTPS)
+            await signIn("credentials", {
                 email,
                 password,
-                redirect: false,
+                callbackUrl: "/dashboard",
             });
-
-            if (result?.error) {
-                toast.error("อีเมลหรือรหัสผ่านไม่ถูกต้อง");
-            } else {
-                toast.success("เข้าสู่ระบบสำเร็จ");
-                window.location.href = "/dashboard";
-            }
         } catch {
             toast.error("เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง");
-        } finally {
             setLoading(false);
         }
     };
@@ -69,6 +69,13 @@ export default function LoginPage() {
                         </CardDescription>
                     </CardHeader>
                     <CardContent>
+                        {/* Error message from NextAuth redirect */}
+                        {error && (
+                            <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-600">
+                                อีเมลหรือรหัสผ่านไม่ถูกต้อง
+                            </div>
+                        )}
+
                         <form onSubmit={handleSubmit} className="space-y-4">
                             <div className="space-y-2">
                                 <Label htmlFor="email">อีเมล</Label>
@@ -110,5 +117,13 @@ export default function LoginPage() {
                 </Card>
             </div>
         </div>
+    );
+}
+
+export default function LoginPage() {
+    return (
+        <Suspense>
+            <LoginForm />
+        </Suspense>
     );
 }
