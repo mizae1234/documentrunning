@@ -59,7 +59,7 @@ export default function LoginPage() {
                         Document Running System
                     </h1>
                     <p className="text-sm text-slate-500 mt-1">
-                        ระบบจัดการคำขอเอกสาร
+                        ระบบจัดการคำขอเลขที่เอกสาร
                     </p>
                 </div>
 
