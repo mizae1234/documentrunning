@@ -109,22 +109,6 @@ export default function LoginPage() {
                             </Button>
                         </form>
 
-                        {/* Demo credentials */}
-                        <div className="mt-6 p-3 bg-slate-50 rounded-xl border border-slate-100">
-                            <p className="text-xs font-medium text-slate-500 mb-2">
-                                บัญชีทดสอบ:
-                            </p>
-                            <div className="space-y-1 text-xs text-slate-600">
-                                <p>
-                                    <span className="font-medium">Admin:</span>{" "}
-                                    admin@example.com / admin123
-                                </p>
-                                <p>
-                                    <span className="font-medium">User:</span>{" "}
-                                    user@example.com / user123
-                                </p>
-                            </div>
-                        </div>
                     </CardContent>
                 </Card>
             </div>
