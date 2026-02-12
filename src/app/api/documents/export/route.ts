@@ -14,6 +14,8 @@ export async function GET(req: NextRequest) {
         const { searchParams } = new URL(req.url);
         const search = searchParams.get("search") || "";
         const year = searchParams.get("year");
+        const dateFrom = searchParams.get("dateFrom");
+        const dateTo = searchParams.get("dateTo");
 
         const where: Record<string, unknown> = {};
 
@@ -22,11 +24,25 @@ export async function GET(req: NextRequest) {
         }
 
         if (search) {
-            where.subject = { contains: search, mode: "insensitive" };
+            where.OR = [
+                { subject: { contains: search, mode: "insensitive" } },
+                { runningNo: { contains: search, mode: "insensitive" } },
+            ];
         }
 
         if (year && year !== "all") {
             where.year = parseInt(year);
+        }
+
+        if (dateFrom || dateTo) {
+            const dateFilter: Record<string, Date> = {};
+            if (dateFrom) dateFilter.gte = new Date(dateFrom);
+            if (dateTo) {
+                const to = new Date(dateTo);
+                to.setHours(23, 59, 59, 999);
+                dateFilter.lte = to;
+            }
+            where.requestDate = dateFilter;
         }
 
         const documents = await prisma.documentRequest.findMany({

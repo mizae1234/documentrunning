@@ -13,6 +13,11 @@ export async function GET(req: NextRequest) {
         const { searchParams } = new URL(req.url);
         const search = searchParams.get("search") || "";
         const year = searchParams.get("year");
+        const dateFrom = searchParams.get("dateFrom");
+        const dateTo = searchParams.get("dateTo");
+        const page = parseInt(searchParams.get("page") || "1");
+        const limit = parseInt(searchParams.get("limit") || "20");
+        const skip = (page - 1) * limit;
 
         const where: Record<string, unknown> = {};
 
@@ -21,9 +26,12 @@ export async function GET(req: NextRequest) {
             where.createdById = session.user.id;
         }
 
-        // Search filter
+        // Search filter (search across subject and runningNo)
         if (search) {
-            where.subject = { contains: search, mode: "insensitive" };
+            where.OR = [
+                { subject: { contains: search, mode: "insensitive" } },
+                { runningNo: { contains: search, mode: "insensitive" } },
+            ];
         }
 
         // Year filter
@@ -31,17 +39,42 @@ export async function GET(req: NextRequest) {
             where.year = parseInt(year);
         }
 
-        const documents = await prisma.documentRequest.findMany({
-            where,
-            include: {
-                createdBy: {
-                    select: { name: true },
-                },
-            },
-            orderBy: { createdAt: "desc" },
-        });
+        // Date range filter
+        if (dateFrom || dateTo) {
+            const dateFilter: Record<string, Date> = {};
+            if (dateFrom) dateFilter.gte = new Date(dateFrom);
+            if (dateTo) {
+                const to = new Date(dateTo);
+                to.setHours(23, 59, 59, 999);
+                dateFilter.lte = to;
+            }
+            where.requestDate = dateFilter;
+        }
 
-        return NextResponse.json(documents);
+        const [documents, total] = await Promise.all([
+            prisma.documentRequest.findMany({
+                where,
+                include: {
+                    createdBy: {
+                        select: { name: true },
+                    },
+                },
+                orderBy: { createdAt: "desc" },
+                skip,
+                take: limit,
+            }),
+            prisma.documentRequest.count({ where }),
+        ]);
+
+        return NextResponse.json({
+            data: documents,
+            pagination: {
+                page,
+                limit,
+                total,
+                totalPages: Math.ceil(total / limit),
+            },
+        });
     } catch (error) {
         console.error("GET /api/documents error:", error);
         return NextResponse.json(

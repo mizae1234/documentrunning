@@ -11,6 +11,7 @@ import {
     XCircle,
     Loader2,
     Download,
+    Pencil,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -232,7 +233,21 @@ export default function DocumentDetailPage() {
                 </CardContent>
             </Card>
 
-            {/* Cancel Action */}
+            {/* Edit & Cancel Actions */}
+            {doc.status === "active" && (
+                <div className="flex gap-3">
+                    <Link href={`/documents/${doc.id}/edit`} className="flex-1">
+                        <Button
+                            variant="outline"
+                            className="w-full border-emerald-200 text-emerald-600 hover:bg-emerald-50 hover:text-emerald-700"
+                        >
+                            <Pencil className="mr-2 h-4 w-4" />
+                            แก้ไขเอกสาร
+                        </Button>
+                    </Link>
+                </div>
+            )}
+
             {doc.status === "active" && (
                 <Card className="border-red-100 shadow-sm">
                     <CardContent className="pt-6">
